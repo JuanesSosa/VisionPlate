@@ -1,12 +1,5 @@
 """
-tracker.py - Tracker con deteccion de placas similares
-
-FIX principal: antes de registrar una placa nueva, verifica si ya existe
-una placa "similar" activa (difiere en 1 caracter). Si existe, usa la
-placa ya registrada en lugar de crear una nueva entrada duplicada.
-
-Esto resuelve casos como ELR984 vs ELR084 donde Tesseract confunde
-0/9, 8/B, 1/I, etc. segun el angulo o la iluminacion.
+tracker.py - Tracker con similitud de placas mejorada
 """
 
 import math
@@ -18,39 +11,46 @@ from typing import Optional
 log = logging.getLogger("ALPR.tracker")
 
 
-def plate_similarity(a: str, b: str) -> int:
-    """
-    Retorna el numero de caracteres diferentes entre dos placas.
-    Si tienen distinto largo, retorna un numero grande.
-    Ejemplo: ELR984 vs ELR084 → 1 diferencia (pos 3: 9 vs 0)
-    """
+def plate_distance(a: str, b: str) -> int:
+    """Numero de caracteres distintos entre dos placas del mismo largo."""
     if len(a) != len(b):
         return max(len(a), len(b))
     return sum(c1 != c2 for c1, c2 in zip(a, b))
 
 
-# Pares de caracteres que Tesseract confunde frecuentemente
-COMMON_CONFUSIONS = {
-    ('0', '9'), ('0', 'O'), ('1', 'I'), ('1', 'L'),
-    ('5', 'S'), ('8', 'B'), ('6', 'G'), ('2', 'Z'),
-}
-
-def is_ocr_confusion(a: str, b: str) -> bool:
+def normalize_plate(plate: str) -> str:
     """
-    Retorna True si las dos placas difieren solo en confusiones OCR conocidas.
-    ELR984 vs ELR084: posicion 3 tiene '9' vs '0' → confusion conocida → True
+    Normaliza una placa reemplazando todos los caracteres ambiguos
+    por una forma canonica, para comparacion fuzzy.
+
+    Ejemplo: NYS401 → N_S_01  /  JNU540 → JN_5_0
+    Esto permite detectar que son variaciones de la misma placa.
+    """
+    ambiguous = {
+        # digitos que parecen letras
+        'O': '0', 'Q': '0',
+        'I': '1', 'L': '1',
+        'S': '5',
+        'B': '8',
+        'G': '6',
+        'Z': '2',
+        # letras que parecen digitos (inverso)
+        '0': '0', '1': '1', '5': '5',
+        '8': '8', '6': '6', '2': '2',
+    }
+    return "".join(ambiguous.get(c, c) for c in plate.upper())
+
+
+def plates_are_same(a: str, b: str, max_diff: int = 2) -> bool:
+    """
+    Retorna True si dos placas probablemente son la misma
+    considerando confusiones OCR.
+    Normaliza ambas y compara — tolera hasta max_diff diferencias.
     """
     if len(a) != len(b):
         return False
-    diffs = [(c1, c2) for c1, c2 in zip(a, b) if c1 != c2]
-    if len(diffs) == 0:
-        return True
-    if len(diffs) > 2:
-        return False
-    return all(
-        (c1, c2) in COMMON_CONFUSIONS or (c2, c1) in COMMON_CONFUSIONS
-        for c1, c2 in diffs
-    )
+    na, nb = normalize_plate(a), normalize_plate(b)
+    return plate_distance(na, nb) <= max_diff
 
 
 class PlateTracker:
@@ -58,7 +58,7 @@ class PlateTracker:
         self.confirm_reads = cfg.CONFIRM_READS
         self.cooldown_sec  = cfg.TRACK_COOLDOWN_SEC
         self._candidates: dict = defaultdict(
-            lambda: deque(maxlen=max(self.confirm_reads, 3)))
+            lambda: deque(maxlen=max(self.confirm_reads, 5)))
         self._last_confirmed: dict = {}
 
     def update(self, track_id: int, text: str) -> Optional[str]:
@@ -74,7 +74,9 @@ class PlateTracker:
         counts = Counter(q)
         top, n = counts.most_common(1)[0]
 
-        if n / len(q) < 0.5:
+        # Requiere mayoria clara (60%)
+        if n / len(q) < 0.6:
+            log.debug(f"Lecturas inconsistentes para tid={track_id}: {dict(counts)}")
             return None
 
         now     = time.time()
@@ -83,25 +85,19 @@ class PlateTracker:
             return None
 
         self._last_confirmed[top] = now
-        log.info(f"Placa confirmada: {top} (tid={track_id})")
+        log.info(f"Placa confirmada: {top} ({n}/{len(q)} lecturas, tid={track_id})")
         return top
 
     def find_similar_active(self, plate: str,
-                             active_plates: list[str]) -> Optional[str]:
+                            active_plates: list) -> Optional[str]:
         """
-        Busca si alguna placa activa (con sesion abierta) es similar
-        a la placa recien leida por confusion OCR.
-        Retorna la placa activa si la encuentra, None si no.
-
-        Ejemplo: se lee 'ELR084', hay sesion abierta de 'ELR984'
-                 → retorna 'ELR984' (la real)
+        Busca si alguna placa activa es la misma que 'plate'
+        con confusiones OCR. Tolera hasta 2 caracteres distintos
+        despues de normalizar.
         """
         for active in active_plates:
-            if is_ocr_confusion(plate, active):
-                log.info(
-                    f"Placa similar detectada: '{plate}' ~ '{active}' "
-                    f"(probablemente la misma, usando '{active}')"
-                )
+            if plates_are_same(plate, active, max_diff=2):
+                log.info(f"Placa similar: '{plate}' ~ '{active}' → usando '{active}'")
                 return active
         return None
 

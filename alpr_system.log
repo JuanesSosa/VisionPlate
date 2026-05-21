@@ -293,3 +293,38 @@
 2026-05-21 08:28:38,458 [INFO] ALPR.db: SALIDA registrada: sesión 5 | 6.2 min | COP 3,500
 2026-05-21 08:28:38,461 [INFO] ALPR.system: *** SALIDA: ELR984 | 6.2 min | COP 3,500 ***
 2026-05-21 08:30:03,900 [INFO] ALPR.system: Sistema cerrado.
+2026-05-21 18:10:56,659 [INFO] ALPR.db: Base de datos lista: parking_unibague.db
+2026-05-21 18:10:56,660 [INFO] ALPR.ocr: Tesseract: C:\Program Files\Tesseract-OCR\tesseract.exe
+2026-05-21 18:10:56,660 [INFO] ALPR.detector: Cargando modelo YOLO: yolov8n.pt
+2026-05-21 18:11:03,285 [INFO] ALPR.detector: Modo YOLO: vehiculo-heurístico
+2026-05-21 18:11:03,285 [WARNING] ALPR.detector: ⚠ Usando modelo genérico (yolov8n.pt). La detección de placas será imprecisa.
+  → Para mejor precisión descarga un modelo especializado:
+    https://github.com/Muhammad-Zeerak-Khan/Automatic-License-Plate-Recognition-using-YOLOv8
+  → Luego actualiza YOLO_MODEL_PATH en config.py
+2026-05-21 18:11:03,285 [INFO] ALPR.system: Sistema listo.
+2026-05-21 18:11:06,390 [INFO] ALPR.system: Teclas: Q=salir  R=reporte  D=debug
+2026-05-21 18:11:22,142 [INFO] ALPR.ocr: OCR string exito: 'NYS401'
+2026-05-21 18:11:24,540 [INFO] ALPR.ocr: OCR string exito: 'JUN540'
+2026-05-21 18:11:24,540 [INFO] ALPR.tracker: Placa confirmada: NYS401 (tid=-1)
+2026-05-21 18:11:24,548 [INFO] ALPR.db: ENTRADA registrada: NYS401 (car)
+2026-05-21 18:11:24,552 [INFO] ALPR.system: *** ENTRADA: NYS401 (car) ***
+2026-05-21 18:11:26,546 [INFO] ALPR.ocr: OCR string exito: 'NUS40'
+2026-05-21 18:11:26,546 [INFO] ALPR.tracker: Placa confirmada: JUN540 (tid=10)
+2026-05-21 18:11:26,558 [INFO] ALPR.db: ENTRADA registrada: JUN540 (car)
+2026-05-21 18:11:26,562 [INFO] ALPR.system: *** ENTRADA: JUN540 (car) ***
+2026-05-21 18:11:27,501 [INFO] ALPR.ocr: OCR string exito: 'NUS20'
+2026-05-21 18:11:28,278 [INFO] ALPR.ocr: OCR string exito: 'INU540'
+2026-05-21 18:11:37,694 [INFO] ALPR.ocr: OCR string exito: 'INE540'
+2026-05-21 18:11:40,615 [INFO] ALPR.ocr: OCR string exito: 'UNU540'
+2026-05-21 18:11:40,616 [INFO] ALPR.tracker: Placa confirmada: INE540 (tid=22)
+2026-05-21 18:11:40,628 [INFO] ALPR.db: ENTRADA registrada: INE540 (car)
+2026-05-21 18:11:40,640 [INFO] ALPR.system: *** ENTRADA: INE540 (car) ***
+2026-05-21 18:11:41,361 [INFO] ALPR.ocr: OCR string exito: 'JNU540'
+2026-05-21 18:11:42,100 [INFO] ALPR.ocr: OCR string exito: 'NUS40'
+2026-05-21 18:11:42,870 [INFO] ALPR.ocr: OCR string exito: 'NUS40'
+2026-05-21 18:11:42,870 [INFO] ALPR.tracker: Placa confirmada: NUS40 (tid=22)
+2026-05-21 18:11:42,885 [INFO] ALPR.db: ENTRADA registrada: NUS40 (motorcycle)
+2026-05-21 18:11:42,891 [INFO] ALPR.system: *** ENTRADA: NUS40 (motorcycle) ***
+2026-05-21 18:11:43,642 [INFO] ALPR.ocr: OCR string exito: 'TNU540'
+2026-05-21 18:11:44,701 [INFO] ALPR.ocr: OCR string exito: 'TUN540'
+2026-05-21 18:15:34,619 [INFO] ALPR.system: Sistema cerrado.
