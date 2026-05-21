@@ -75,7 +75,7 @@ class PlateTracker:
         top, n = counts.most_common(1)[0]
 
         # Requiere mayoria clara (60%)
-        if n / len(q) < 0.6:
+        if n / len(q) < 0.5:
             log.debug(f"Lecturas inconsistentes para tid={track_id}: {dict(counts)}")
             return None
 

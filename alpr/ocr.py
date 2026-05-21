@@ -174,7 +174,7 @@ class OCREngine:
         r = list(text)
         for i, ch in enumerate(r):
             if i < 3:
-                r[i] = {"0":"O","1":"I","5":"S","8":"B"}.get(ch, ch)
+                r[i] = {"0":"O","1":"I","8":"B"}.get(ch, ch)  # NO tocar 5->S ni G->S: son letras validas
             else:
                 r[i] = {"O":"0","I":"1","S":"5","B":"8",
                          "G":"6","Z":"2","T":"1"}.get(ch, ch)

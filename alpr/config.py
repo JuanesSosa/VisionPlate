@@ -45,7 +45,7 @@ class Config:
 
     # -- Tracking -------------------------------------------------------------
     TRACK_COOLDOWN_SEC = 60   # 1 min entre ENTRADA y SALIDA (produccion)
-    CONFIRM_READS      = 3    # lecturas iguales para confirmar
+    CONFIRM_READS      = 2    # lecturas iguales para confirmar
     TRACK_HISTORY      = 50
 
     # -- Tarifas Alcaldia de Ibague 2025 (COP) --------------------------------
