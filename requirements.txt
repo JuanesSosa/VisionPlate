@@ -1,0 +1,6 @@
+ultralytics>=8.0.0
+opencv-python>=4.8.0
+pytesseract>=0.3.10
+numpy>=1.24.0
+Pillow>=10.0.0
+lapx>=0.5.2          # ByteTrack para tracking de objetos (necesario para track_id)
