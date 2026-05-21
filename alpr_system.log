@@ -328,3 +328,69 @@
 2026-05-21 18:11:43,642 [INFO] ALPR.ocr: OCR string exito: 'TNU540'
 2026-05-21 18:11:44,701 [INFO] ALPR.ocr: OCR string exito: 'TUN540'
 2026-05-21 18:15:34,619 [INFO] ALPR.system: Sistema cerrado.
+2026-05-21 18:18:11,102 [INFO] ALPR.db: Base de datos lista: parking_unibague.db
+2026-05-21 18:18:11,103 [INFO] ALPR.ocr: Tesseract: C:\Program Files\Tesseract-OCR\tesseract.exe
+2026-05-21 18:18:11,103 [INFO] ALPR.detector: Cargando modelo YOLO: yolov8n.pt
+2026-05-21 18:18:13,385 [INFO] ALPR.detector: Modo YOLO: vehiculo-heurístico
+2026-05-21 18:18:13,385 [WARNING] ALPR.detector: ⚠ Usando modelo genérico (yolov8n.pt). La detección de placas será imprecisa.
+  → Para mejor precisión descarga un modelo especializado:
+    https://github.com/Muhammad-Zeerak-Khan/Automatic-License-Plate-Recognition-using-YOLOv8
+  → Luego actualiza YOLO_MODEL_PATH en config.py
+2026-05-21 18:18:13,385 [INFO] ALPR.system: Sistema listo.
+2026-05-21 18:18:16,453 [INFO] ALPR.system: Teclas: Q=salir  R=reporte  D=debug
+2026-05-21 18:18:23,069 [INFO] ALPR.ocr: OCR string exito: 'NUS40'
+2026-05-21 18:18:23,774 [INFO] ALPR.ocr: OCR string exito: 'JNU540'
+2026-05-21 18:18:27,421 [INFO] ALPR.ocr: OCR string exito: 'INU540'
+2026-05-21 18:18:28,248 [INFO] ALPR.ocr: OCR string exito: 'JNU540'
+2026-05-21 18:18:30,005 [INFO] ALPR.ocr: OCR string exito: 'NYS40'
+2026-05-21 18:18:30,764 [INFO] ALPR.ocr: OCR string exito: 'JNU540'
+2026-05-21 18:18:30,765 [INFO] ALPR.tracker: Placa confirmada: JNU540 (3/5 lecturas, tid=-1)
+2026-05-21 18:18:30,775 [INFO] ALPR.db: ENTRADA registrada: JNU540 (car)
+2026-05-21 18:18:30,781 [INFO] ALPR.system: *** ENTRADA: JNU540 (car) ***
+2026-05-21 18:18:31,447 [INFO] ALPR.ocr: OCR string exito: 'INU540'
+2026-05-21 18:18:32,146 [INFO] ALPR.ocr: OCR string exito: 'UNU540'
+2026-05-21 18:18:32,921 [INFO] ALPR.ocr: OCR string exito: 'NUS401'
+2026-05-21 18:18:44,469 [INFO] ALPR.ocr: OCR string exito: 'WUS123'
+2026-05-21 18:18:45,386 [INFO] ALPR.ocr: OCR string exito: 'WUS123'
+2026-05-21 18:18:49,332 [INFO] ALPR.ocr: OCR string exito: 'NUS129'
+2026-05-21 18:18:50,224 [INFO] ALPR.ocr: OCR string exito: 'VWU513'
+2026-05-21 18:18:52,350 [INFO] ALPR.ocr: OCR string exito: 'NUS125'
+2026-05-21 18:18:55,808 [INFO] ALPR.ocr: OCR string exito: 'VUS123'
+2026-05-21 18:18:57,069 [INFO] ALPR.ocr: OCR string exito: 'VUS125'
+2026-05-21 18:19:31,220 [INFO] ALPR.system: Sistema cerrado.
+2026-05-21 18:20:34,712 [INFO] ALPR.db: Base de datos lista: parking_unibague.db
+2026-05-21 18:20:34,714 [INFO] ALPR.ocr: Tesseract: C:\Program Files\Tesseract-OCR\tesseract.exe
+2026-05-21 18:20:34,715 [INFO] ALPR.detector: Cargando modelo YOLO: yolov8n.pt
+2026-05-21 18:20:37,019 [INFO] ALPR.detector: Modo YOLO: vehiculo-heurístico
+2026-05-21 18:20:37,020 [WARNING] ALPR.detector: ⚠ Usando modelo genérico (yolov8n.pt). La detección de placas será imprecisa.
+  → Para mejor precisión descarga un modelo especializado:
+    https://github.com/Muhammad-Zeerak-Khan/Automatic-License-Plate-Recognition-using-YOLOv8
+  → Luego actualiza YOLO_MODEL_PATH en config.py
+2026-05-21 18:20:37,020 [INFO] ALPR.system: Sistema listo.
+2026-05-21 18:20:40,231 [INFO] ALPR.system: Teclas: Q=salir  R=reporte  D=debug
+2026-05-21 18:21:02,237 [INFO] ALPR.ocr: OCR string exito: 'UNU540'
+2026-05-21 18:21:06,730 [INFO] ALPR.ocr: OCR string exito: 'JNS40'
+2026-05-21 18:21:09,971 [INFO] ALPR.ocr: OCR string exito: 'JNU540'
+2026-05-21 18:21:10,833 [INFO] ALPR.ocr: OCR string exito: 'JNU540'
+2026-05-21 18:21:11,575 [INFO] ALPR.ocr: OCR string exito: 'JNU540'
+2026-05-21 18:21:11,575 [INFO] ALPR.tracker: Placa confirmada: JNU540 (3/3 lecturas, tid=25)
+2026-05-21 18:21:11,586 [INFO] ALPR.db: ENTRADA registrada: JNU540 (car)
+2026-05-21 18:21:11,593 [INFO] ALPR.system: *** ENTRADA: JNU540 (car) ***
+2026-05-21 18:21:12,432 [INFO] ALPR.ocr: OCR string exito: 'SNU540'
+2026-05-21 18:21:13,351 [INFO] ALPR.ocr: OCR string exito: 'NUS40'
+2026-05-21 18:22:08,606 [INFO] ALPR.ocr: OCR string exito: 'UNU540'
+2026-05-21 18:22:10,918 [INFO] ALPR.ocr: OCR string exito: 'UNU540'
+2026-05-21 18:23:34,833 [INFO] ALPR.ocr: OCR string exito: 'NUS40'
+2026-05-21 18:23:37,951 [INFO] ALPR.ocr: OCR string exito: 'JNU540'
+2026-05-21 18:23:38,786 [INFO] ALPR.ocr: OCR string exito: 'UNU540'
+2026-05-21 18:23:38,787 [INFO] ALPR.tracker: Placa confirmada: UNU540 (3/5 lecturas, tid=-1)
+2026-05-21 18:23:38,787 [INFO] ALPR.tracker: Placa similar: 'UNU540' ~ 'JNU540' → usando 'JNU540'
+2026-05-21 18:23:38,787 [INFO] ALPR.system: Usando sesion de placa similar: 'UNU540' → 'JNU540'
+2026-05-21 18:23:38,797 [INFO] ALPR.db: SALIDA registrada: sesión 1 | 2.5 min | COP 3,500
+2026-05-21 18:23:38,797 [INFO] ALPR.system: *** SALIDA: JNU540 | 2.5 min | COP 3,500 ***
+2026-05-21 18:23:39,543 [INFO] ALPR.ocr: OCR string exito: 'JNU540'
+2026-05-21 18:23:40,304 [INFO] ALPR.ocr: OCR string exito: 'JNU540'
+2026-05-21 18:23:40,304 [INFO] ALPR.tracker: Placa confirmada: JNU540 (3/5 lecturas, tid=21)
+2026-05-21 18:23:40,315 [INFO] ALPR.db: ENTRADA registrada: JNU540 (car)
+2026-05-21 18:23:40,320 [INFO] ALPR.system: *** ENTRADA: JNU540 (car) ***
+2026-05-21 18:23:48,098 [INFO] ALPR.system: Sistema cerrado.
