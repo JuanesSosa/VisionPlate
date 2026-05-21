@@ -1,5 +1,6 @@
 """
-system.py - Controlador principal ALPR v8 (OCR sincrono)
+system.py - Controlador principal ALPR v10
+- Usa find_similar_active para evitar doble registro por confusion OCR
 """
 
 import cv2
@@ -32,8 +33,7 @@ class ALPRParkingSystem:
 
         self._fps_counter   = deque(maxlen=30)
         self._daily_revenue = 0.0
-        # track_id -> estado para display
-        self._state: dict = {}
+        self._state: dict   = {}  # track_id -> {text, status, fee}
 
         log.info("Sistema listo.")
 
@@ -60,9 +60,9 @@ class ALPRParkingSystem:
                 out = self._process(frame)
 
                 if self.cfg.DISPLAY_SCALE != 1.0:
-                    s  = self.cfg.DISPLAY_SCALE
-                    out = cv2.resize(out,
-                                     (int(out.shape[1]*s), int(out.shape[0]*s)))
+                    s   = self.cfg.DISPLAY_SCALE
+                    out = cv2.resize(out, (int(out.shape[1]*s),
+                                          int(out.shape[0]*s)))
 
                 cv2.imshow("ALPR - Universidad de Ibague", out)
 
@@ -88,13 +88,11 @@ class ALPRParkingSystem:
             tid  = det["track_id"]
             crop = det["crop"]
 
-            # --- Debug windows ---
             if self.cfg.SHOW_DEBUG:
                 region = extract_plate_by_color(crop)
                 if region is not None:
                     cv2.imshow("Region Color", cv2.resize(region, (300, 80)))
 
-            # --- Preprocesar ---
             binary = self.preprocessor.process(crop)
             if binary is None:
                 self._draw(frame, det, tid)
@@ -103,26 +101,21 @@ class ALPRParkingSystem:
             if self.cfg.SHOW_DEBUG:
                 cv2.imshow("Placa Debug", cv2.resize(binary, (300, 100)))
 
-            # --- OCR SINCRONO ---
             text, conf = self.ocr.read(binary, self.preprocessor)
 
             if text:
-                log.debug(f"OCR resultado: '{text}' conf={conf:.0f} valido={self.ocr.is_valid(text)}")
+                log.debug(f"OCR: '{text}' conf={conf:.0f} "
+                          f"valido={self.ocr.is_valid(text)}")
 
-            # --- Logica de parqueo ---
             if self.ocr.is_valid(text):
                 confirmed = self.tracker.update(tid, text)
-                # Tambien intentar con ID universal por si el track_id cambia
                 if not confirmed:
                     confirmed = self.tracker.update(-1, text)
-
                 if confirmed:
                     self._register(confirmed, conf, tid)
 
-            # --- Dibujar estado actual ---
             self._draw(frame, det, tid)
 
-        # HUD
         elapsed = time.perf_counter() - t0
         self._fps_counter.append(1.0 / max(elapsed, 1e-9))
         fps = sum(self._fps_counter) / len(self._fps_counter)
@@ -131,18 +124,36 @@ class ALPRParkingSystem:
         return frame
 
     def _register(self, plate: str, conf: float, tid: int):
-        """Registra entrada o salida y actualiza el estado de display."""
-        vtype   = self.ocr.infer_vehicle_type(plate)
+        """
+        Registra entrada o salida.
+        Antes de crear una entrada nueva, verifica si hay una sesion abierta
+        con una placa similar (diferencia de 1 caracter por confusion OCR).
+        """
+        vtype = self.ocr.infer_vehicle_type(plate)
+
+        # Buscar sesion abierta exacta
         session = self.db.get_open_session(plate)
 
+        # Si no hay sesion exacta, buscar una similar (ELR084 ~ ELR984)
         if session is None:
+            active_plates = self.db.get_active_plates()
+            similar = self.tracker.find_similar_active(plate, active_plates)
+            if similar:
+                session = self.db.get_open_session(similar)
+                if session:
+                    log.info(f"Usando sesion de placa similar: "
+                             f"'{plate}' → '{similar}'")
+                    plate = similar  # usar la placa correcta
+
+        if session is None:
+            # Nueva entrada
             self.db.register_entry(plate, vtype)
             self.db.log_detection(plate, conf)
             self._state[tid] = {"text": plate, "status": "entry", "fee": ""}
-            # Propagar a ID universal tambien
             self._state[-1]  = self._state[tid]
             log.info(f"*** ENTRADA: {plate} ({vtype}) ***")
         else:
+            # Salida
             dur, fee = self.fee_calc.calculate(
                 session["entry_time"], time.time(), session["vehicle_type"])
             self.db.register_exit(session["id"], fee, dur)
@@ -153,9 +164,8 @@ class ALPRParkingSystem:
             log.info(f"*** SALIDA: {plate} | {dur:.1f} min | COP {fee:,.0f} ***")
 
     def _draw(self, frame, det, tid):
-        """Dibuja con el ultimo estado conocido para este track_id."""
-        s = self._state.get(tid) or self._state.get(-1) or \
-            {"text": "?", "status": "pending", "fee": ""}
+        s = (self._state.get(tid) or self._state.get(-1) or
+             {"text": "?", "status": "pending", "fee": ""})
         self.display.draw_detection(frame, det, s["text"], s["status"], s["fee"])
 
     def _print_report(self):
@@ -163,7 +173,8 @@ class ALPRParkingSystem:
         sep  = "=" * 72
         print(f"\n{sep}\n  REPORTE - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
         print(sep)
-        print(f"  {'PLACA':<12} {'ENTRADA':<22} {'SALIDA':<22} {'MIN':>6} {'COP':>10}")
+        print(f"  {'PLACA':<12} {'ENTRADA':<22} {'SALIDA':<22} "
+              f"{'MIN':>6} {'COP':>10}")
         print("-" * 72)
         total = 0.0
         for plate, entry_dt, exit_dt, dur, fee in rows:

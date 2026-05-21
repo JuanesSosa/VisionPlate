@@ -111,3 +111,11 @@ class Database:
 
     def close(self):
         self.conn.close()
+
+    def get_active_plates(self) -> list:
+        """Retorna lista de placas con sesion abierta actualmente."""
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT plate FROM parking_sessions WHERE exit_time IS NULL"
+        )
+        return [row[0] for row in cur.fetchall()]

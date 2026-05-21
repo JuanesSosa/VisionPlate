@@ -1,6 +1,5 @@
 """
-ocr.py - OCR sincrono directo (sin hilos)
-El hilo separado causaba que los resultados se perdieran.
+ocr.py - OCR sincrono con correccion mejorada de confusiones OCR
 """
 
 import cv2
@@ -14,7 +13,6 @@ log = logging.getLogger("ALPR.ocr")
 
 
 def extract_plate_by_color(crop_bgr: np.ndarray) -> Optional[np.ndarray]:
-    """Recorta la region naranja/amarilla de la placa dentro del crop."""
     if crop_bgr is None or crop_bgr.size == 0:
         return None
     hsv  = cv2.cvtColor(crop_bgr, cv2.COLOR_BGR2HSV)
@@ -61,8 +59,7 @@ class Preprocessor:
 
     def process(self, crop: np.ndarray) -> Optional[np.ndarray]:
         region = extract_plate_by_color(crop)
-        src    = region if region is not None else crop
-        return self._bin(src)
+        return self._bin(region if region is not None else crop)
 
     def _bin(self, src: np.ndarray) -> Optional[np.ndarray]:
         h, w = src.shape[:2]
@@ -98,22 +95,25 @@ class OCREngine:
         log.info(f"Tesseract: {cfg.TESSERACT_CMD}")
 
     def read(self, binary: np.ndarray, preprocessor: Preprocessor) -> tuple:
-        """Ejecuta OCR sincrono. Retorna (texto, confianza)."""
         inv  = preprocessor.invert(binary)
         up   = preprocessor.upscale(binary)
         uinv = preprocessor.invert(up)
 
+        candidates = []
         for img, cfg in [(binary, self._PSM8),
                          (inv,    self._PSM8),
                          (up,     self._PSM8),
                          (uinv,   self._PSM7)]:
             text, conf = self._run(img, cfg)
-            log.debug(f"OCR intento '{text}' conf={conf:.0f}")
+            if text:
+                log.debug(f"OCR intento: '{text}' conf={conf:.0f} valido={self.is_valid(text)}")
             if self.is_valid(text):
                 log.info(f"OCR exito: '{text}' conf={conf:.0f}")
                 return text, conf
+            if text:
+                candidates.append((text, conf))
 
-        # Ultimo recurso: image_to_string rapido
+        # Fallback image_to_string
         for img in (binary, inv, up):
             try:
                 raw  = pytesseract.image_to_string(img, config=self._PSM8)
@@ -121,12 +121,17 @@ class OCREngine:
                 if self.is_valid(text):
                     log.info(f"OCR string exito: '{text}'")
                     return text, 65.0
+                if text:
+                    candidates.append((text, 65.0))
             except Exception:
                 pass
 
+        # Retornar el candidato con mayor confianza aunque no sea valido
+        if candidates:
+            best = max(candidates, key=lambda x: x[1])
+            return best
         return "", 0.0
 
-    # Alias para compatibilidad
     def read_plate(self, binary, preprocessor): return self.read(binary, preprocessor)
     def submit(self, *a, **k): pass
     def get_results(self): return []
@@ -148,23 +153,37 @@ class OCREngine:
             log.debug(f"Tesseract err: {e}")
             return "", 0.0
 
-    def _clean(self, text):
+    def _clean(self, text: str) -> str:
+        """
+        Limpia y corrige confusiones OCR por posicion.
+
+        Zona letras (pos 0-2): solo letras validas
+          - Digitos que parecen letras: 0→O, 1→I, 5→S, 8→B
+
+        Zona digitos (pos 3+): solo digitos validos
+          - Letras que parecen digitos: O→0, I→1, S→5, B→8, G→6, Z→2
+          - NOTA: NO se toca 9 porque 9 es digito valido y no se confunde
+            con ninguna letra. El error ELR084/ELR984 ocurre porque
+            Tesseract lee el 9 como 0 — esto se maneja en el tracker
+            con similitud de placas, no aqui.
+        """
         text = re.sub(r"[^A-Z0-9]", "", text.upper())
         if len(text) < 5:
             return text
+
         r = list(text)
         for i, ch in enumerate(r):
             if i < 3:
-                r[i] = {"0":"O","1":"I","5":"S","8":"B"}.get(ch,ch)
+                r[i] = {"0":"O","1":"I","5":"S","8":"B"}.get(ch, ch)
             else:
                 r[i] = {"O":"0","I":"1","S":"5","B":"8",
-                         "G":"6","Z":"2","T":"1"}.get(ch,ch)
+                         "G":"6","Z":"2","T":"1"}.get(ch, ch)
         return "".join(r)
 
-    def is_valid(self, text):
+    def is_valid(self, text: str) -> bool:
         return bool(text) and any(p.match(text) for p in self.patterns)
 
-    def infer_vehicle_type(self, plate):
+    def infer_vehicle_type(self, plate: str) -> str:
         if re.match(r"^[A-Z]{3}[0-9]{2}$", plate): return "motorcycle"
         if re.match(r"^CD", plate): return "diplomatic"
         return "car"
